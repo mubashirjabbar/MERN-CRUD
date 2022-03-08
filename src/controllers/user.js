@@ -16,18 +16,56 @@ async function getUserById(req, res) {
 
 async function addUser(req, res) {
   let { firstName, lastName, email, password } = req.body;
-  const dbResp = await User.create({
-    firstName: firstName,
-    lastName: lastName,
-    email: email,
-    password: password,
-  });
 
-  dbResp
-    ? res.send(dbResp)
-    : res.send({ message: "User not added" }).status(400);
+  let dbResp;
+  try {
+    dbResp = await User.create({
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+    });
+  } catch (Excp) {
+    console.log({ Excp });
+    dbResp = {
+      message: Excp.errors[0].message,
+    };
+  }
+
+  res.send(dbResp);
+  // dbResp
+  //   ? res.send(dbResp)
+  //   : res.send({ message: "User not added" }).status(400);
 }
 
+async function updateUser(req, res) {
+  let { id } = req.params;
+  let { firstName, lastName, email } = req.body;
+  let dbResp;
+
+  try {
+    dbResp = await User.update(
+      {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      },
+      {
+        where: {
+          id: id,
+        },
+      }
+    );
+  } catch (Excp) {
+    console.log({ Excp });
+    dbResp = {
+      message: Excp.errors[0].message,
+    };
+  }
+  dbResp[0] === 1
+    ? res.send({ message: "User successfully updated" })
+    : res.send({ message: "Something went wrong" }).sendStatus(400);
+}
 
 async function deleteUser(req, res) {
   let { id } = req.params;
@@ -47,4 +85,5 @@ module.exports = {
   getUserById,
   addUser,
   deleteUser,
+  updateUser,
 };
